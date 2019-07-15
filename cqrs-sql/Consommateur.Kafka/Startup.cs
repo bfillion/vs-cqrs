@@ -37,7 +37,7 @@ namespace Consommateur.Kafka
             var builder = new ContainerBuilder();
 
             //Ajout des services au conteneur d'injection de dépendances.
-            services.AddSingleton<IHostedService, ServiceConsommationKafka>();
+            services.AddSingleton<IHostedService, ServiceProduitsKafka>();
 
             builder.Populate(services);
             this.ApplicationContainer = builder.Build();

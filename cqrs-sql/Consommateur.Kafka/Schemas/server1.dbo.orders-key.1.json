@@ -1,0 +1,1 @@
+{"type":"record","name":"Key","namespace":"server1.dbo.orders","fields":[{"name":"id","type":"int"}],"connect.name":"server1.dbo.orders.Key"}

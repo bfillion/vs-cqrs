@@ -1,0 +1,12 @@
+{
+  "type": "record",
+  "name": "Key",
+  "namespace": "server1.dbo.products",
+  "fields": [
+    {
+      "name": "id",
+      "type": "int"
+    }
+  ],
+  "connect.name": "server1.dbo.products.Key"
+}
