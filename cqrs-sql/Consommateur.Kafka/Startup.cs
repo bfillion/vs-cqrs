@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
+using Consommateur.Kafka.Modeles;
 using Consommateur.Kafka.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -19,6 +20,11 @@ namespace Consommateur.Kafka
 {
     public class Startup
     {
+        //Constantes
+        string MONGO_NOM_BANQUE = "MONGO_NOM_BANQUE";
+        string MONGO_NOM_COLLECTION = "MONGO_NOM_COLLECTION";
+        string MONGO_CHAINE_CONNEXION = "MONGO_CHAINE_CONNEXION";
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -37,8 +43,17 @@ namespace Consommateur.Kafka
             var builder = new ContainerBuilder();
 
             //Ajout des services au conteneur d'injection de dépendances.
-            services.AddSingleton<IHostedService, ServiceProduitsKafka>();
+            services.AddSingleton<IMagasinConfigBanque>(new MagasinConfigBanque()
+            {
+                ChaineConnexion = Environment.GetEnvironmentVariable(MONGO_CHAINE_CONNEXION),
+                NomBanque = Environment.GetEnvironmentVariable(MONGO_NOM_BANQUE),
+                NomCollection = Environment.GetEnvironmentVariable(MONGO_NOM_COLLECTION)
+            });
 
+            services.AddTransient(typeof(IServiceProduct), typeof(ServiceProduct));
+
+            services.AddSingleton<IHostedService, ServiceProduitsKafka>();
+            
             builder.Populate(services);
             this.ApplicationContainer = builder.Build();
 

@@ -22,6 +22,7 @@ namespace Consommateur.Kafka.Services
 
         //variables
         private readonly IConfiguration _configuration = null;
+        private readonly IServiceProduct _serviceProduct = null;
 
         private ILogger _logger = null;
         private string bootstrapServers = "";
@@ -31,9 +32,11 @@ namespace Consommateur.Kafka.Services
 
         ConsumerConfig consumerConfig = null;
 
-        public ServiceProduitsKafka(IConfiguration configuration)
+        public ServiceProduitsKafka(IConfiguration configuration, IServiceProduct serviceProduct)
         {
             _configuration = configuration;
+
+            _serviceProduct = serviceProduct;
 
             InitLogger();
 
@@ -50,8 +53,8 @@ namespace Consommateur.Kafka.Services
             var tacheConsommateur = Task.Run(() =>
             {
                 using (var serdeProvider = new AvroSerdeProvider(new AvroSerdeProviderConfig { SchemaRegistryUrl = schemaRegistryUrl }))
-                using (var consumer = new Consumer<string, GenericRecord>(consumerConfig,
-                    serdeProvider.GetDeserializerGenerator<string>().Invoke(true),
+                using (var consumer = new Consumer<GenericRecord, GenericRecord>(consumerConfig,
+                    serdeProvider.GetDeserializerGenerator<GenericRecord>().Invoke(true),
                     serdeProvider.GetDeserializerGenerator<GenericRecord>().Invoke(false)))
                 {
                     consumer.Subscribe(TOPIC);
@@ -64,11 +67,13 @@ namespace Consommateur.Kafka.Services
                             {
                                 var consumeResult = consumer.Consume(stoppingToken);
 
-                                Console.WriteLine($"Key: {consumeResult.Message.Key}\nValue: {consumeResult.Value}");
+                                _logger.Information("Key: {Key}, Value: {Value}",
+                                    consumeResult.Message.Key,
+                                    consumeResult.Value);
                             }
                             catch (ConsumeException e)
                             {
-                                Console.WriteLine($"Consume error: {e.Error.Reason}");
+                                _logger.Error("Consume error: {Reason}", e.Error.Reason);
                             }
                         }
                     }
@@ -80,7 +85,7 @@ namespace Consommateur.Kafka.Services
                 }
             });
 
-            _logger.Information("service server1.dbo.products arrêté à : {Now}", DateTime.Now);
+            //_logger.Information("service server1.dbo.products arrêté à : {Now}", DateTime.Now);
         }
 
         private void InitLogger()
