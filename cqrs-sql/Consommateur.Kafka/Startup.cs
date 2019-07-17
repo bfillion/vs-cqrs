@@ -45,9 +45,9 @@ namespace Consommateur.Kafka
             //Ajout des services au conteneur d'injection de dépendances.
             services.AddSingleton<IMagasinConfigBanque>(new MagasinConfigBanque()
             {
-                ChaineConnexion = Environment.GetEnvironmentVariable(MONGO_CHAINE_CONNEXION),
-                NomBanque = Environment.GetEnvironmentVariable(MONGO_NOM_BANQUE),
-                NomCollection = Environment.GetEnvironmentVariable(MONGO_NOM_COLLECTION)
+                ChaineConnexion = Configuration.GetSection(MONGO_CHAINE_CONNEXION).Value,
+                NomBanque = Configuration.GetSection(MONGO_NOM_BANQUE).Value,
+                NomCollection = Configuration.GetSection(MONGO_NOM_COLLECTION).Value
             });
 
             services.AddTransient(typeof(IServiceProduct), typeof(ServiceProduct));

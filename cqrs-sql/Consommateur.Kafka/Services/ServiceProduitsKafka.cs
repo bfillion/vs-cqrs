@@ -27,12 +27,9 @@ namespace Consommateur.Kafka.Services
         private readonly IServiceProduct _serviceProduct = null;
 
         private ILogger _logger = null;
-        private string bootstrapServers = "";
-        private string schemaRegistryUrl = "";
-
-        SchemaRegistryConfig schemaRegistryConfig = null;
-
-        ConsumerConfig consumerConfig = null;
+        
+        private readonly SchemaRegistryConfig schemaRegistryConfig = null;
+        private readonly ConsumerConfig consumerConfig = null;
 
         public ServiceProduitsKafka(IConfiguration configuration, IServiceProduct serviceProduct)
         {
@@ -42,7 +39,18 @@ namespace Consommateur.Kafka.Services
 
             InitLogger();
 
-            ChargerVarEnv();
+            schemaRegistryConfig = new SchemaRegistryConfig
+            {
+                SchemaRegistryUrl = _configuration.GetSection(ENV_KAFKA_SCHEMA_REGISTRY_URL).Value,
+                SchemaRegistryRequestTimeoutMs = 5000,
+                SchemaRegistryMaxCachedSchemas = 10
+            };
+
+            consumerConfig = new ConsumerConfig
+            {
+                BootstrapServers = _configuration.GetSection(ENV_KAFKA_BOOTSTRAPSERVERS).Value,
+                GroupId = "avro-server1.dbo.products"
+            };
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -54,7 +62,7 @@ namespace Consommateur.Kafka.Services
 
             var tacheConsommateur = Task.Run(() =>
             {
-                using (var serdeProvider = new AvroSerdeProvider(new AvroSerdeProviderConfig { SchemaRegistryUrl = schemaRegistryUrl }))
+                using (var serdeProvider = new AvroSerdeProvider(new AvroSerdeProviderConfig { SchemaRegistryUrl = schemaRegistryConfig.SchemaRegistryUrl }))
                 using (var consumer = new Consumer<GenericRecord, Envelope>(consumerConfig,
                     serdeProvider.GetDeserializerGenerator<GenericRecord>().Invoke(true),
                     serdeProvider.GetDeserializerGenerator<Envelope>().Invoke(false)))
@@ -130,30 +138,6 @@ namespace Consommateur.Kafka.Services
                 .MinimumLevel.Information()
                 .WriteTo.Console()
                 .CreateLogger();
-        }
-        
-        private void ChargerVarEnv()
-        {
-            bootstrapServers = Environment.GetEnvironmentVariable(ENV_KAFKA_BOOTSTRAPSERVERS);
-            schemaRegistryUrl = Environment.GetEnvironmentVariable(ENV_KAFKA_SCHEMA_REGISTRY_URL);
-
-            schemaRegistryConfig = new SchemaRegistryConfig
-            {
-                // Note: you can specify more than one schema registry url using the
-                // schema.registry.url property for redundancy (comma separated list). 
-                // The property name is not plural to follow the convention set by
-                // the Java implementation.
-                SchemaRegistryUrl = schemaRegistryUrl,
-                // optional schema registry client properties:
-                SchemaRegistryRequestTimeoutMs = 5000,
-                SchemaRegistryMaxCachedSchemas = 10
-            };
-
-            consumerConfig = new ConsumerConfig
-            {
-                BootstrapServers = bootstrapServers,
-                GroupId = "avro-server1.dbo.products"
-            };
         }
     }
 }
