@@ -6,21 +6,16 @@ namespace Consommateur.Kafka.Modeles
 {
     public class product
     {
-        public product()
-        {
-        
-        }
-
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; }
 
-        public int id { get; set; }
+        public int idProduit { get; set; }
 
-        public int name { get; set; }
+        public string name { get; set; }
 
-        public int description { get; set; }
+        public string description { get; set; }
 
-        public int weight { get; set; }
+        public double? weight { get; set; }
     }
 }

@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Consommateur.Kafka.Modeles;
+using Consommateur.Kafka.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,36 +13,20 @@ namespace Consommateur.Kafka.Controllers
     [ApiController]
     public class ProduitsController : ControllerBase
     {
+        private readonly IServiceProduct _serviceProduct = null;
+
+        public ProduitsController(IServiceProduct serviceProduct)
+        {
+            _serviceProduct = serviceProduct;
+        }
+
         // GET: api/Produits
         [HttpGet]
-        public IEnumerable<string> Get()
+        public IEnumerable<product> Get()
         {
-            return new string[] { "value1", "value2" };
-        }
+            List<product> products = _serviceProduct.Get();
 
-        // GET: api/Produits/5
-        [HttpGet("{id}", Name = "Get")]
-        public string Get(int id)
-        {
-            return "value";
-        }
-
-        // POST: api/Produits
-        [HttpPost]
-        public void Post([FromBody] string value)
-        {
-        }
-
-        // PUT: api/Produits/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
-
-        // DELETE: api/ApiWithActions/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
+            return products;
         }
     }
 }

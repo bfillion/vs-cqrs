@@ -10,6 +10,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Avro.Generic;
 using Confluent.Kafka.Serialization;
+using server1.dbo.products;
+using Consommateur.Kafka.Modeles;
 
 namespace Consommateur.Kafka.Services
 {
@@ -53,9 +55,9 @@ namespace Consommateur.Kafka.Services
             var tacheConsommateur = Task.Run(() =>
             {
                 using (var serdeProvider = new AvroSerdeProvider(new AvroSerdeProviderConfig { SchemaRegistryUrl = schemaRegistryUrl }))
-                using (var consumer = new Consumer<GenericRecord, GenericRecord>(consumerConfig,
+                using (var consumer = new Consumer<GenericRecord, Envelope>(consumerConfig,
                     serdeProvider.GetDeserializerGenerator<GenericRecord>().Invoke(true),
-                    serdeProvider.GetDeserializerGenerator<GenericRecord>().Invoke(false)))
+                    serdeProvider.GetDeserializerGenerator<Envelope>().Invoke(false)))
                 {
                     consumer.Subscribe(TOPIC);
 
@@ -67,13 +69,47 @@ namespace Consommateur.Kafka.Services
                             {
                                 var consumeResult = consumer.Consume(stoppingToken);
 
+                                if (consumeResult.Value.before == null && consumeResult.Value.after != null)
+                                {
+                                    //Ajout
+                                    product produit = new product()
+                                    {
+                                        idProduit = consumeResult.Value.after.id,
+                                        name = consumeResult.Value.after.name,
+                                        description = consumeResult.Value.after.description,
+                                        weight = consumeResult.Value.after.weight
+                                    };
+
+                                    _serviceProduct.Create(produit);
+                                }
+
+                                if (consumeResult.Value.before != null && consumeResult.Value.after != null)
+                                {
+                                    //MAJ
+                                    product produit = new product()
+                                    {
+                                        idProduit = consumeResult.Value.after.id,
+                                        name = consumeResult.Value.after.name,
+                                        description = consumeResult.Value.after.description,
+                                        weight = consumeResult.Value.after.weight
+                                    };
+
+                                    _serviceProduct.Update(produit.idProduit, produit);
+                                }
+
+                                if (consumeResult.Value.before != null && consumeResult.Value.after == null)
+                                {
+                                    //Suppression
+                                    _serviceProduct.Remove(consumeResult.Value.before.id);
+                                }
+
                                 _logger.Information("Key: {Key}, Value: {Value}",
                                     consumeResult.Message.Key,
                                     consumeResult.Value);
                             }
                             catch (ConsumeException e)
                             {
-                                _logger.Error("Consume error: {Reason}", e.Error.Reason);
+                                _logger.Error("Consommation erreur: {Reason}", e.Error.Reason);
                             }
                         }
                     }

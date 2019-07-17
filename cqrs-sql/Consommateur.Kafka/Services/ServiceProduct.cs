@@ -21,7 +21,7 @@ namespace Consommateur.Kafka.Services
             _produits.Find(product => true).ToList();
 
         public product Get(int id) =>
-            _produits.Find<product>(product => product.id == id).FirstOrDefault();
+            _produits.Find<product>(product => product.idProduit == id).FirstOrDefault();
 
         public product Create(product produit)
         {
@@ -30,13 +30,13 @@ namespace Consommateur.Kafka.Services
         }
 
         public void Update(int id, product produitIn) =>
-            _produits.ReplaceOne(product => product.id == id, produitIn);
+            _produits.ReplaceOne(product => product.idProduit == id, produitIn);
 
         public void Remove(product produitIn) =>
-            _produits.DeleteOne(product => product.id == produitIn.id);
+            _produits.DeleteOne(product => product.Id == produitIn.Id);
 
         public void Remove(int id) =>
-            _produits.DeleteOne(product => product.id == id);
+            _produits.DeleteOne(product => product.idProduit == id);
 
     }
 }
