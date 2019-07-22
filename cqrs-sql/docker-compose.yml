@@ -77,6 +77,16 @@ services:
       KAFKA_REST_PROXY_URL: http://rest-proxy:8082
       PROXY: "true"
 
+  kafka-connect-ui:
+    image: landoop/kafka-connect-ui
+    depends_on:
+      - connect
+    ports:
+      - "9002:8000"
+    environment:
+      CONNECT_URL: http://connect:8083
+      PROXY: "true"
+
   sqlserver:
     image: microsoft/mssql-server-linux:2017-CU9-GDR2
     ports:
